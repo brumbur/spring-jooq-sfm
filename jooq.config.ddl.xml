@@ -1,0 +1,56 @@
+<!-- generate from DDL -->
+<configuration>
+    <generator>
+        <database>
+            <name>org.jooq.meta.extensions.ddl.DDLDatabase</name>
+            <includes>.*</includes>
+            <excludes/>
+            <inputSchema>PUBLIC</inputSchema>
+            <properties>
+                <property>
+                    <key>scripts</key>
+                    <value>src/main/schema/postgres-sakila-db/postgres-sakila-schema.sql</value>
+                </property>
+
+                <!-- The default name case for unquoted objects:
+
+                     - as_is: unquoted object names are kept unquoted
+                     - upper: unquoted object names are turned into upper case (most databases)
+                     - lower: unquoted object names are turned into lower case (e.g. PostgreSQL) -->
+                <property>
+                    <key>defaultNameCase</key>
+                    <value>as_is</value>
+                </property>
+
+                <!-- Turn on/off ignoring contents between such tokens. Defaults to true -->
+                <property>
+                    <key>parseIgnoreComments</key>
+                    <value>true</value>
+                </property>
+
+                <!-- Change the starting token -->
+                <property>
+                    <key>parseIgnoreCommentStart</key>
+                    <value>[jooq ignore start]</value>
+                </property>
+
+                <!-- Change the stopping token -->
+                <property>
+                    <key>parseIgnoreCommentStop</key>
+                    <value>[jooq ignore stop]</value>
+                </property>
+
+            </properties>
+        </database>
+        <!--<strategy>
+            <name>org.jooq.util.DefaultGeneratorStrategy</name>
+        </strategy>-->
+        <target>
+            <packageName>org.brum.sjs.jooq.domain</packageName>
+            <directory>target/generated/jooq</directory>
+        </target>
+        <generate>
+            <records>true</records>
+        </generate>
+    </generator>
+</configuration>

@@ -1,0 +1,50 @@
+<!-- generate from PostgreSQL -->
+<configuration>
+    <jdbc>
+        <driver>org.postgresql.Driver</driver>
+        <url>jdbc:postgresql://localhost:5432/pg-dev</url>
+        <user>postgres</user>
+        <password>sa</password>
+    </jdbc>
+    <generator>
+        <database>
+            <name>org.jooq.meta.postgres.PostgresDatabase</name>
+            <includes>.*</includes>
+            <excludes>payment_p2007_0.*</excludes>
+            <inputSchema>public</inputSchema>
+            <!--<properties>
+
+                &lt;!&ndash; The default name case for unquoted objects:
+
+                     - as_is: unquoted object names are kept unquoted
+                     - upper: unquoted object names are turned into upper case (most databases)
+                     - lower: unquoted object names are turned into lower case (e.g. PostgreSQL) &ndash;&gt;
+                <property>
+                    <key>defaultNameCase</key>
+                    <value>as_is</value>
+                </property>
+            </properties>-->
+        </database>
+        <!--<strategy>
+            <name>org.jooq.util.DefaultGeneratorStrategy</name>
+        </strategy>-->
+        <target>
+            <packageName>org.brum.sjs.jooq.domain</packageName>
+            <directory>target/generated/jooq</directory>
+        </target>
+        <generate>
+            <relations>true</relations>
+            <pojos>true</pojos>
+            <records>true</records>
+            <interfaces>true</interfaces>
+            <daos>true</daos>
+            <fluentSetters>true</fluentSetters>
+            <indexes>true</indexes>
+            <immutablePojos>true</immutablePojos>
+            <deprecationOnUnknownTypes>false</deprecationOnUnknownTypes>
+            <generatedAnnotation>true</generatedAnnotation>
+            <jpaAnnotations>true</jpaAnnotations>
+            <validationAnnotations>true</validationAnnotations>
+        </generate>
+    </generator>
+</configuration>
