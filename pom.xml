@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.brumbar.samples</groupId>
+    <artifactId>spring-jooq-sfm</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.4.3.RELEASE</version>
+    </parent>
+
+    <dependencies>
+        <!-- Compile -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jooq</artifactId>
+        </dependency>
+        <!-- Runtime -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- Provided -->
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq-codegen</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+<!--        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>2.5.1</version>
+            <scope>test</scope>
+        </dependency>-->
+    </dependencies>
+
+    <properties>
+        <skip.jooq.generation>false</skip.jooq.generation>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>-Dspring.profiles.active=test</argLine>
+                    <argLine>-Dspring.datasource.url=jdbc:hsqldb:mem:PUBLIC;sql.syntax_pgs=true</argLine>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>gensrc/main/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+    <profiles>
+        <profile>
+            <id>generate</id>
+            <properties>
+                <skip.jooq.generation>false</skip.jooq.generation>
+            </properties>
+            <build>
+                <plugins>
+                    <!--maven-compiler-plugin-->
+                    <plugin>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>generate-jooq-utils</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>compile</goal>
+                                </goals>
+                                <inherited>false</inherited>
+                                <configuration>
+                                    <includes>
+                                        <inclue>sample/jooq/util/**</inclue>
+                                    </includes>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- sql-maven-plugin - execute SQL scripts to set the test db -->
+
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>sql-maven-plugin</artifactId>
+                        <version>1.5</version>
+                        <executions>
+                            <execution>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>execute</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>com.h2database</groupId>
+                                <artifactId>h2</artifactId>
+                                <version>${h2.version}</version>
+                            </dependency>
+                        </dependencies>
+                        <configuration>
+                            <driver>org.h2.Driver</driver>
+                            <url>jdbc:hsqldb:mem:PUBLIC;sql.syntax_pgs=true</url>
+                            <srcFiles>
+                                <srcFile>${basedir}/src/main/schemata/postgres-sakila-db/postgres-sakila-schema.sql</srcFile>
+                            </srcFiles>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.jooq</groupId>
+                        <artifactId>jooq-codegen-maven</artifactId>
+                        <version>3.13.5</version>
+                        <executions>
+                            <execution>
+                                <id>jooq-codegen</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                                <configuration>
+
+                                    <skip>${skip.jooq.generation}</skip>
+
+                                    <!-- option to specify an external XML configuration file -->
+                                    <!--<configurationFile>${externalfile}</configurationFile>-->
+
+                                    <!-- Alternatively, you can provide several external configuration files. These will be merged by using
+                                         Maven's combine.children="append" policy -->
+                                    <configurationFiles>
+                                        <configurationFile>${basedir}/src/main/schemata/postgres-sakila-db/postgres-sakila-schema.sql</configurationFile>
+                                        <!--<configurationFile>${basedir}/src/main/schemata/postgres-sakila-db/postgres-insert-data-schema</configurationFile>-->
+                                    </configurationFiles>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                        </dependencies>
+
+                        <configuration>
+                            <jdbc>
+                                <driver>org.h2.Driver</driver>
+                                <url>jdbc:h2:~/springbootjooq</url>
+                            </jdbc>
+                            <generator>
+                                <name>org.jooq.util.D</name>
+                                <database>
+                                    <name>org.jooq.util.h2.H2Database</name>
+                                    <includes>.*</includes>
+                                    <excludes/>
+                                    <inputSchema>PUBLIC</inputSchema>
+                                </database>
+                                <strategy>
+                                    <name>org.jooq.util.DefaultGeneratorStrategy</name>
+                                </strategy>
+                                <target>
+                                    <packageName>sample.jooq.domain</packageName>
+                                    <directory>${basedir}/gensrc/main/java</directory>
+                                </target>
+                                <generate>
+                                    <records>false</records>
+                                </generate>
+                            </generator>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>central</id>
+            <name>Central Repository</name>
+            <url>https://repo1.maven.org/maven2/</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <repositories>
+        <repository>
+            <id>central</id>
+            <name>Central Repository</name>
+            <url>https://repo1.maven.org/maven2/</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+</project>
