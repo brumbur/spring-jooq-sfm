@@ -10,16 +10,22 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.4.3.RELEASE</version>
+        <version>2.3.4.RELEASE</version>
     </parent>
 
     <properties>
         <skip.jooq.generation>false</skip.jooq.generation>
-        <jooq.version>3.13.5</jooq.version>
+        <!-- override Spring which forces 1.8 -->
+        <maven.compiler.source>15</maven.compiler.source>
+        <maven.compiler.target>15</maven.compiler.target>
     </properties>
 
     <dependencies>
         <!-- Compile -->
+<!--        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jooq</artifactId>
@@ -28,40 +34,45 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-        <!-- Runtime -->
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <!-- Provided -->
-        <dependency>
-            <groupId>org.jooq</groupId>
-            <artifactId>jooq-codegen</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
+            <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.jooq</groupId>
-            <artifactId>jooq-meta-extensions</artifactId>
-            <version>${jooq.version}</version>
+            <groupId>javax.persistence</groupId>
+            <artifactId>javax.persistence-api</artifactId>
+<!--            <version>2.2</version>-->
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>42.2.18</version>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.16</version>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>2.3.4.RELEASE</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <plugins>
@@ -115,7 +126,7 @@
                                 <configuration>
                                     <configurationFiles>
                                         <!--<configurationFile>jooq.config.ddl.xml</configurationFile>-->
-                                        <configurationFile>jooq.config.sql.xml</configurationFile>
+                                        <configurationFile>jooq.config.pg.xml</configurationFile>
                                     </configurationFiles>
                                 </configuration>
                             </execution>

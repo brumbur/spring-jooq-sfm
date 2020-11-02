@@ -1,0 +1,14 @@
+spring:
+#  profiles: dev
+  application:
+    name: spring-jooq-sfm
+  datasource:
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/pg-dev
+    username: sa
+    password:
+server:
+  port: 9000
+
+database:
+  ddl: schema/postgres-sakila-db/postgres-sakila-delete-data.sql
