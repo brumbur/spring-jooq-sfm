@@ -10,24 +10,9 @@
         <database>
             <name>org.jooq.meta.postgres.PostgresDatabase</name>
             <includes>.*</includes>
-            <excludes>payment_p2007_0.*</excludes>
+            <excludes>payment_p2007_0.* | Flyway.*</excludes>
             <inputSchema>public</inputSchema>
-            <!--<properties>
-
-                &lt;!&ndash; The default name case for unquoted objects:
-
-                     - as_is: unquoted object names are kept unquoted
-                     - upper: unquoted object names are turned into upper case (most databases)
-                     - lower: unquoted object names are turned into lower case (e.g. PostgreSQL) &ndash;&gt;
-                <property>
-                    <key>defaultNameCase</key>
-                    <value>as_is</value>
-                </property>
-            </properties>-->
         </database>
-        <!--<strategy>
-            <name>org.jooq.util.DefaultGeneratorStrategy</name>
-        </strategy>-->
         <target>
             <packageName>org.brum.sjs.jooq.domain</packageName>
             <directory>target/generated/jooq</directory>
