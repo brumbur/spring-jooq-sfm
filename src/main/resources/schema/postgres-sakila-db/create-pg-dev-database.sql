@@ -1,0 +1,19 @@
+CREATE DATABASE "pg-dev"
+    WITH
+    OWNER = postgres
+    ENCODING = 'UTF8'
+    CONNECTION LIMIT = -1;
+
+GRANT ALL ON DATABASE "pg-dev" TO postgres WITH GRANT OPTION;
+
+
+CREATE ROLE "pg-dev-sa" WITH
+    LOGIN
+    NOSUPERUSER
+    NOCREATEDB
+    NOCREATEROLE
+    INHERIT
+    NOREPLICATION
+    CONNECTION LIMIT -1
+    PASSWORD 'dev-test';
+COMMENT ON ROLE "pg-dev-sa" IS 'admin for pg-dev db';
