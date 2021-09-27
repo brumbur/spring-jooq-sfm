@@ -1,5 +1,5 @@
 <!-- generate from PostgreSQL -->
-<configuration>
+<configuration schemaLocation="http://www.jooq.org/xsd/jooq-codegen-3.15.0.xsd">
     <jdbc>
         <driver>org.postgresql.Driver</driver>
         <url>jdbc:postgresql://localhost:5432/pg-dev</url>
@@ -15,7 +15,7 @@
         </database>
         <target>
             <packageName>org.brum.sjs.jooq.domain</packageName>
-            <directory>target/generated/jooq</directory>
+            <directory>target/generated-sources/jooq</directory>
         </target>
         <generate>
             <relations>true</relations>

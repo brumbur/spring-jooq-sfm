@@ -10,22 +10,19 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.3.4.RELEASE</version>
+        <version>2.5.4</version>
     </parent>
 
     <properties>
         <skip.jooq.generation>false</skip.jooq.generation>
-        <!-- override Spring which forces 1.8 -->
-        <maven.compiler.source>15</maven.compiler.source>
-        <maven.compiler.target>15</maven.compiler.target>
+        <app.profiles>local,dev,jooq-codegen-pg,jooq-codegen-ddl</app.profiles>
+        <spring.version>${project.parent.version}</spring.version>
+        <jooq.version>3.15.3</jooq.version> <!--override version 3.14.13 coming from spring-->
+        <java.version>16</java.version> <!-- override Spring which forces 1.8 -->
     </properties>
 
     <dependencies>
         <!-- Compile -->
-<!--        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jooq</artifactId>
@@ -44,9 +41,14 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq-meta-extensions</artifactId>
+            <version>${jooq.version}</version>
+        </dependency>
+        <dependency>
             <groupId>javax.persistence</groupId>
             <artifactId>javax.persistence-api</artifactId>
-<!--            <version>2.2</version>-->
+            <version>2.2</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -72,7 +74,7 @@
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
-                <version>2.3.4.RELEASE</version>
+                <version>${spring.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -81,16 +83,11 @@
 
     <build>
         <plugins>
-            <!--build-helper-maven-plugin - used to add jooq generated code to the list of sources -->
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
             <plugin>
                 <groupId>org.jooq</groupId>
                 <artifactId>jooq-codegen-maven</artifactId>
-                <version>3.13.5</version>
             </plugin>
+            <!--build-helper-maven-plugin - used to add jooq generated code to the list of sources -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
@@ -104,18 +101,74 @@
                         </goals>
                         <configuration>
                             <sources>
-                                <source>${basedir}/target/generated/jooq</source>
+                                <source>${basedir}/target/generated-sources/jooq</source>
                             </sources>
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>1.4.1</version>
+                <executions>
+                    <execution>
+                        <id>enforce-active-jooq-codegen-pg</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireActiveProfile>
+                                    <profiles>jooq-codegen-pg, jooq-codegen-ddl</profiles>
+                                    <all>false</all>
+                                </requireActiveProfile>
+                                <evaluateBeanshell>
+                                    <!--suppress UnresolvedMavenProperty -->
+                                    <condition><![CDATA[
+                                        // ensure jooq-codegen-pg XOR jooq-codegen-ddl
+                                        print("- ${project.activeProfiles} \n- Checking if only one of jooq-codegen-pg and jooq-codegen-ddl is active ...");
+                                        boolean profile1 = true, profile2 = false;
+
+                                        // todo: fix the regex
+                                        for(s: "${project.activeProfiles}".replaceAll("Profile \\{id: (<profile>[\\-\\w+]).*", "${profile}").split(",")) {
+                                            print("-- checking profile:" + s);
+                                            if(s.indexOf("jooq-codegen-pg")>=0) {
+                                                profile1 = true;
+                                            }
+                                            if(s.indexOf("jooq-codegen-ddl")>=0) {
+                                                profile2 = true;
+                                            }
+                                        }
+                                        print("- jooq-codegen-pg XOR jooq-codegen-ddl: "+(profile1 != profile2));
+                                        return profile1 != profile2;
+                                    ]]></condition>
+                                </evaluateBeanshell>
+                            </rules>
+                            <failFast>true</failFast>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring.version}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-configuration-processor</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
             </plugin>
         </plugins>
     </build>
 
     <profiles>
         <profile>
-            <id>jooq-codegen</id>
+            <id>jooq-codegen-pg</id>
             <build>
                 <plugins>
                     <plugin>
@@ -130,8 +183,33 @@
                                 </goals>
                                 <configuration>
                                     <configurationFiles>
-                                        <!--<configurationFile>jooq.config.ddl.xml</configurationFile>-->
-                                        <configurationFile>jooq.config.pg.xml</configurationFile>
+                                        <configurationFile>jooq-generator-pg.xml</configurationFile>
+                                    </configurationFiles>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>jooq-codegen-ddl</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jooq</groupId>
+                        <artifactId>jooq-codegen-maven</artifactId>
+                        <executions>
+                            <execution>
+                                <id>jooq-codegen</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                                <configuration>
+                                    <configurationFiles>
+                                        jooq-generator-ddl.xml
+                                        <configurationFile>jooq-generator-ddl.xml</configurationFile>
                                     </configurationFiles>
                                 </configuration>
                             </execution>
@@ -168,5 +246,4 @@
             </snapshots>
         </repository>
     </repositories>
-
 </project>
